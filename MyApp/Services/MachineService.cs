@@ -25,10 +25,17 @@ namespace MyApp.Services
 
         public async Task<List<AlarmEvent>> GetLatestAlarmEventsAsync(int count)
         {
-            return await _dbContext.AlarmEvents
-                .OrderByDescending(a => a.CreatedAt)
+            return await _dbContext
+                .AlarmEvents.OrderByDescending(a => a.CreatedAt)
                 .Take(count)
                 .ToListAsync();
+        }
+
+        public async Task<Machine> AddMachineAsync(Machine machine)
+        {
+            _dbContext.Machines.Add(machine);
+            await _dbContext.SaveChangesAsync();
+            return machine;
         }
     }
 }

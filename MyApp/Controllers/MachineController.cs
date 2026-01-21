@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
-using MyApp.Services;
-using MyApp.Data;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using MyApp.Data;
+using MyApp.Services;
 
 namespace MyApp.Controllers
 {
@@ -28,6 +28,15 @@ namespace MyApp.Controllers
         {
             var alarms = await _service.GetLatestAlarmEventsAsync(count);
             return Ok(alarms);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddMachine([FromBody] MyApp.Models.Machine machine)
+        {
+            if (machine == null)
+                return BadRequest();
+            var result = await _service.AddMachineAsync(machine);
+            return CreatedAtAction(nameof(GetAllMachines), new { id = result.Id }, result);
         }
     }
 }

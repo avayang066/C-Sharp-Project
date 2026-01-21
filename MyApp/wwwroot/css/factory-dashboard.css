@@ -1,0 +1,38 @@
+/* factory-dashboard.css */
+.fd-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+    background: #fff;
+    box-shadow: 0 2px 8px #eee;
+}
+.fd-table th, .fd-table td {
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    text-align: center;
+}
+.fd-table th {
+    background: #f5f5f5;
+    color: #333;
+    font-weight: bold;
+}
+.fd-table tr:nth-child(even) {
+    background: #f9f9f9;
+}
+.fd-table tr:hover {
+    background: #e6f7ff;
+}
+h2 {
+    color: #2c3e50;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+    border-left: 4px solid #3498db;
+    padding-left: 8px;
+}
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f4f6fa;
+    margin: 0;
+    padding: 2rem;
+}
