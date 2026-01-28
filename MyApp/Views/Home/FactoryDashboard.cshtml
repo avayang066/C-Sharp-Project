@@ -17,20 +17,20 @@
     async function fetchAndRender() {
         // 機台
         const machines = await fetch('/api/machine').then(r => r.json());
-        let mHtml = '<tr><th>Id</th><th>Code</th><th>Name</th><th>Active</th></tr>';
+        let mHtml = '<tr><th>Id</th><th>編號</th><th>機台名稱</th><th>啟用狀態</th></tr>';
         console.log(machines);
         machines.forEach(m => mHtml += `<tr><td>${m.id}</td><td>${m.machineCode}</td><td>${m.machineName}</td><td>${m.isActive ? '✔' : '✖'}</td></tr>`);
         document.getElementById('machinesTable').innerHTML = mHtml;
 
         // 警報
         const alarms = await fetch('/api/machine/alarms/5').then(r => r.json());
-        let aHtml = '<tr><th>Id</th><th>Type</th><th>Msg</th><th>Time</th></tr>';
+        let aHtml = '<tr><th>Id</th><th>類型</th><th>訊息</th><th>時間</th></tr>';
         alarms.forEach(a => aHtml += `<tr><td>${a.id}</td><td>${a.alarmType}</td><td>${a.message}</td><td>${a.createdAt}</td></tr>`);
         document.getElementById('alarmsTable').innerHTML = aHtml;
 
         // 產出
         const logs = await fetch('/api/productionlog').then(r => r.json());
-        let pHtml = '<tr><th>Id</th><th>MachineId</th><th>Status</th><th>YieldRate</th><th>OutputQty</th><th>Timestamp</th></tr>';
+        let pHtml = '<tr><th>Id</th><th>機台編號</th><th>狀態</th><th>YieldRate</th><th>OutputQty</th><th>Timestamp</th></tr>';
         logs.forEach(l => pHtml += `<tr><td>${l.id}</td><td>${l.machineId}</td><td>${l.status}</td><td>${l.yieldRate}</td><td>${l.outputQty}</td><td>${l.timestamp}</td></tr>`);
         document.getElementById('productionTable').innerHTML = pHtml;
     }
