@@ -12,6 +12,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHostedService<ProductionLogGeneratorService>();
+builder.Services.AddScoped<ProductionLogService>();
 
 var app = builder.Build();
 

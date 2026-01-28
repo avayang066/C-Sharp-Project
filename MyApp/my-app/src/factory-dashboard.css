@@ -1,0 +1,48 @@
+.factory-dashboard-container {
+  max-width: 1080px;
+  margin: 40px auto 0 auto;
+  padding: 30px;
+  background: #f9fafb;
+  border-radius: 12px;
+  box-shadow: 0 6px 28px 0 rgba(0,0,0,0.11);
+}
+.fd-title {
+  color: #234366;
+  border-left: 5px solid #4591c6;
+  padding-left: 10px;
+  margin-top: 32px;
+  margin-bottom: 16px;
+}
+.fd-table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 30px;
+}
+.fd-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  font-size: 16px;
+  min-width: 600px;
+  margin-bottom: 16px;
+}
+.fd-table th, .fd-table td {
+  border: 1px solid #e3e3e3;
+  padding: 10px 12px;
+  text-align: center;
+}
+.fd-table th {
+  background: #f2f6fa;
+  color: #234366;
+  font-weight: 700;
+}
+.fd-table tbody tr:hover {
+  background: #f5fafd;
+  transition: background 0.2s;
+}
+.fd-no-data {
+  color: #bbb;
+  font-style: italic;
+}
+.fd-status-success { color: #27ae60; font-weight: bold; }
+.fd-status-error { color: #c0392b; font-weight: bold; }
+.fd-status-normal { color: #808080; }

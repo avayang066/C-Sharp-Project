@@ -10,16 +10,26 @@ namespace MyApp.Controllers
     public class ProductionLogController : ControllerBase
     {
         private readonly ApplicationDbContext _dbContext;
+        private readonly ProductionLogService _service;
 
-        public ProductionLogController(ApplicationDbContext dbContext)
+        public ProductionLogController(ApplicationDbContext dbContext, ProductionLogService service)
         {
             _dbContext = dbContext;
+            _service = service;
         }
 
+        // [HttpGet]
+        // public async Task<IActionResult> GetAllProductionLogs()
+        // {
+        //     var logs = await _dbContext.ProductionLogs.ToListAsync();
+        //     return Ok(logs);
+        // }
+
         [HttpGet]
-        public async Task<IActionResult> GetAllProductionLogs()
+        public async Task<IActionResult> GetAll()
         {
-            var logs = await _dbContext.ProductionLogs.ToListAsync();
+            Console.WriteLine("================================= Fetching all production logs...");
+            var logs = await _service.GetLogsAsync();
             return Ok(logs);
         }
     }
