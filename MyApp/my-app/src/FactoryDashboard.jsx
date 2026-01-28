@@ -95,27 +95,45 @@ const FactoryDashboard = () => {
     Timestamp: new Date(l.timestamp).toLocaleString(),
   }));
 
-  // 資料抓取
+  // 機台-每30秒抓一次
   useEffect(() => {
     let timer;
-    const fetchData = async () => {
+    const fetchMachines = async () => {
       try {
-        const [machinesRes, alarmsRes, logsRes] = await Promise.all([
-          fetch("/api/machine"),
-          fetch("/api/machine/alarms/5"),
-          fetch("/api/productionlog"),
-        ]);
-        setMachines(await machinesRes.json());
-        setAlarms(await alarmsRes.json());
-        setLogs(await logsRes.json());
-      } catch (e) {
-        // Handle error
-      }
+        const res = await fetch("/api/machine");
+        setMachines(await res.json());
+      } catch (e) {}
     };
+    fetchMachines();
+    timer = setInterval(fetchMachines, 30000); // 每30秒
+    return () => clearInterval(timer);
+  }, []);
 
-    fetchData();
-    timer = setInterval(fetchData, 15000);
+  // 警報-每10秒抓一次
+  useEffect(() => {
+    let timer;
+    const fetchAlarms = async () => {
+      try {
+        const res = await fetch("/api/machine/alarms/5");
+        setAlarms(await res.json());
+      } catch (e) {}
+    };
+    fetchAlarms();
+    timer = setInterval(fetchAlarms, 10000); // 每10秒
+    return () => clearInterval(timer);
+  }, []);
 
+  // 產出資料-每10秒抓一次
+  useEffect(() => {
+    let timer;
+    const fetchLogs = async () => {
+      try {
+        const res = await fetch("/api/productionlog");
+        setLogs(await res.json());
+      } catch (e) {}
+    };
+    fetchLogs();
+    timer = setInterval(fetchLogs, 10000); // 每10秒
     return () => clearInterval(timer);
   }, []);
 

@@ -27,11 +27,26 @@ namespace MyApp.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
             modelBuilder
-                .Entity<MyApp.Models.AlarmEvent>()
+                .Entity<AlarmEvent>()
                 .HasOne(a => a.ProductionLog)
                 .WithMany()
                 .HasForeignKey(a => a.ProductionLogId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder
+                .Entity<AlarmEvent>()
+                .HasOne(a => a.Machine)
+                .WithMany()
+                .HasForeignKey(a => a.MachineId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder
+                .Entity<ProductionLog>()
+                .HasOne(p => p.Machine)
+                .WithMany()
+                .HasForeignKey(p => p.MachineId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

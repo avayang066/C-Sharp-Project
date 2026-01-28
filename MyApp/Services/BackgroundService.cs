@@ -76,7 +76,23 @@ public class ProductionLogGeneratorService : BackgroundService
                 dbContext.ProductionLogs.Add(log);
                 await dbContext.SaveChangesAsync();
 
-                // 只保留每台機台最新100筆資料
+                // 4. 加入 alarm 判斷
+                if (log.YieldRate < 0.80)
+                {
+                    var alarm = new AlarmEvent
+                    {
+                        MachineId = log.MachineId,
+                        ProductionLogId = log.Id,
+                        AlarmType = "機台異常",
+                        Message =
+                            $"機台 {log.MachineId} 良率過低，良率 = {log.YieldRate * 100:F2}%",
+                        CreatedAt = DateTime.Now,
+                    };
+                    dbContext.AlarmEvents.Add(alarm);
+                    await dbContext.SaveChangesAsync();
+                }
+
+                // 5. 只保留每台機台最新100筆資料
                 machineIds = await dbContext.Machines.Select(m => m.Id).ToListAsync();
 
                 foreach (var machineId in machineIds)
@@ -90,21 +106,24 @@ public class ProductionLogGeneratorService : BackgroundService
 
                     if (logIdsToDelete.Count > 0)
                     {
+                        // 1. 先刪 AlarmEvent (FK: ProductionLogId)
+                        var alarmEventsToDelete = dbContext.AlarmEvents.Where(a =>
+                            logIdsToDelete.Contains(a.ProductionLogId)
+                        );
+                        dbContext.AlarmEvents.RemoveRange(alarmEventsToDelete);
+
+                        // 2. 再刪 ProductionLog
                         var logsToDelete = dbContext.ProductionLogs.Where(x =>
                             logIdsToDelete.Contains(x.Id)
                         );
                         dbContext.ProductionLogs.RemoveRange(logsToDelete);
+
                         await dbContext.SaveChangesAsync();
                     }
                 }
             }
+
             await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
         }
-    }
-
-    private string GetRandomStatus()
-    {
-        var arr = new[] { "Success", "Error", "Normal" };
-        return arr[new Random().Next(arr.Length)];
     }
 }
