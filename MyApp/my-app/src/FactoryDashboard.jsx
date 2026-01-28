@@ -6,7 +6,7 @@ const Table = ({ columns, data }) => (
     <table className="fd-table">
       <thead>
         <tr>
-          {columns.map(col => (
+          {columns.map((col) => (
             <th key={col}>{col}</th>
           ))}
         </tr>
@@ -15,14 +15,16 @@ const Table = ({ columns, data }) => (
         {data && data.length > 0 ? (
           data.map((row, i) => (
             <tr key={i}>
-              {Object.keys(row).map(key => (
+              {Object.keys(row).map((key) => (
                 <td key={key}>{row[key]}</td>
               ))}
             </tr>
           ))
         ) : (
           <tr>
-            <td colSpan={columns.length} className="fd-no-data">無資料</td>
+            <td colSpan={columns.length} className="fd-no-data">
+              無資料
+            </td>
           </tr>
         )}
       </tbody>
@@ -38,10 +40,17 @@ const FactoryDashboard = () => {
   // 資料欄位 & 美化
   const machineCols = ["Id", "編號", "機台名稱", "啟用狀態"];
   const alarmCols = ["Id", "類型", "訊息", "時間"];
-  const logsCols = ["Id", "機台編號", "狀態", "YieldRate", "OutputQty", "Timestamp"];
+  const logsCols = [
+    // "Id",
+    "機台編號",
+    "狀態",
+    "YieldRate",
+    "OutputQty",
+    "Timestamp",
+  ];
 
   // 美化呈現 values
-  const renderMachines = machines.map(m => ({
+  const renderMachines = machines.map((m) => ({
     Id: m.id,
     編號: m.machineCode,
     機台名稱: m.machineName,
@@ -58,15 +67,15 @@ const FactoryDashboard = () => {
     ),
   }));
 
-  const renderAlarms = alarms.map(a => ({
+  const renderAlarms = alarms.slice(0, 50).map((a) => ({
     Id: a.id,
     類型: a.alarmType,
     訊息: a.message,
     時間: new Date(a.createdAt).toLocaleString(),
   }));
 
-  const renderLogs = logs.map(l => ({
-    Id: l.id,
+  const renderLogs = logs.slice(0, 50).map((l) => ({
+    // Id: l.id,
     機台編號: l.machineId,
     狀態: (
       <span
@@ -74,8 +83,8 @@ const FactoryDashboard = () => {
           l.status === "Success"
             ? "fd-status-success"
             : l.status === "Error"
-            ? "fd-status-error"
-            : "fd-status-normal"
+              ? "fd-status-error"
+              : "fd-status-normal"
         }
       >
         {l.status}

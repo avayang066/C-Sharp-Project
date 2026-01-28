@@ -26,7 +26,18 @@ public class ProductionLogGeneratorService : BackgroundService
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-                int selectedMachineId = 1; // 可自訂隨機機台
+                // 從資料庫撈出現有機台 Id 清單
+                var machineIds = await dbContext.Machines.Select(m => m.Id).ToListAsync();
+
+                if (machineIds == null || machineIds.Count == 0)
+                {
+                    // 沒有機台，直接跳過這輪
+                    await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+                    continue;
+                }
+
+                // 隨機挑一個機台 Id
+                int selectedMachineId = machineIds[random.Next(machineIds.Count)];
 
                 // 1. 自動產生 OutputQty (例如 10~100 隨機)
                 int outputQty = random.Next(10, 101);
@@ -36,12 +47,12 @@ public class ProductionLogGeneratorService : BackgroundService
                 if (random.NextDouble() < 0.3)
                 {
                     // 0.0~0.8
-                    yieldRate = Math.Round(random.NextDouble() * 0.8, 2);
+                    yieldRate = Math.Round(random.NextDouble() * 0.8, 7);
                 }
                 else
                 {
                     // 0.8~1.0
-                    yieldRate = Math.Round(0.8 + random.NextDouble() * 0.2, 2);
+                    yieldRate = Math.Round(0.8 + random.NextDouble() * 0.2, 7);
                 }
 
                 // 3. Status依據YieldRate判斷
@@ -66,7 +77,7 @@ public class ProductionLogGeneratorService : BackgroundService
                 await dbContext.SaveChangesAsync();
 
                 // 只保留每台機台最新100筆資料
-                var machineIds = await dbContext.Machines.Select(m => m.Id).ToListAsync();
+                machineIds = await dbContext.Machines.Select(m => m.Id).ToListAsync();
 
                 foreach (var machineId in machineIds)
                 {

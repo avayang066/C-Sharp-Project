@@ -28,7 +28,7 @@ namespace MyApp.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            Console.WriteLine("================================= Fetching all production logs...");
+            Console.WriteLine("================================== Fetching all production logs...");
             var logs = await _service.GetLogsAsync();
             return Ok(logs);
         }
