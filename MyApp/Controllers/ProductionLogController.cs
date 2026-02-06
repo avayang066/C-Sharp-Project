@@ -18,18 +18,11 @@ namespace MyApp.Controllers
             _service = service;
         }
 
-        // [HttpGet]
-        // public async Task<IActionResult> GetAllProductionLogs()
-        // {
-        //     var logs = await _dbContext.ProductionLogs.ToListAsync();
-        //     return Ok(logs);
-        // }
-
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             Console.WriteLine(
-                $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] ============ Fetching all production logs....."
+                $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] ===== Fetching all production logs....."
             );
             var logs = await _service.GetLogsAsync();
             return Ok(logs);

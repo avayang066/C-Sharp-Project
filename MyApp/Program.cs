@@ -1,7 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using MyApp.Data;
+using MyApp.Services;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.File("Logs/app.log", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog();
 
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -12,8 +19,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 builder.Services.AddHostedService<ProductionLogGeneratorService>();
 builder.Services.AddScoped<ProductionLogService>();
+builder.Services.AddScoped<IMachineService, MachineService>();
 
 var app = builder.Build();
 

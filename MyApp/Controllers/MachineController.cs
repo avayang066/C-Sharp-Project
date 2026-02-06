@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using MyApp.Data;
 using MyApp.Services;
 
 namespace MyApp.Controllers
@@ -9,11 +8,11 @@ namespace MyApp.Controllers
     [Route("api/[controller]")]
     public class MachineController : ControllerBase
     {
-        private readonly MachineService _service;
+        private readonly IMachineService _service;
 
-        public MachineController(ApplicationDbContext dbContext)
+        public MachineController(IMachineService service)
         {
-            _service = new MachineService(dbContext, null);
+            _service = service;
         }
 
         [HttpGet]

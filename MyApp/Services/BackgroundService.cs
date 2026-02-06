@@ -24,6 +24,10 @@ public class ProductionLogGeneratorService : BackgroundService
         {
             using (var scope = _serviceProvider.CreateScope())
             {
+                Console.WriteLine(
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] ===== background service running....."
+                );
+
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
                 // 從資料庫撈出現有機台 Id 清單

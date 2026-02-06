@@ -7,12 +7,12 @@ using MyApp.Models;
 
 namespace MyApp.Services
 {
-    public class MachineService
+    public class MachineService : IMachineService
     {
         private readonly ApplicationDbContext _dbContext;
-        private readonly object _logger; // Placeholder for logger if needed
+        private readonly ILogger<MachineService> _logger;
 
-        public MachineService(ApplicationDbContext dbContext, object logger)
+        public MachineService(ApplicationDbContext dbContext, ILogger<MachineService> logger)
         {
             _dbContext = dbContext;
             _logger = logger;
@@ -20,7 +20,9 @@ namespace MyApp.Services
 
         public async Task<List<Machine>> GetAllMachinesAsync()
         {
-            return await _dbContext.Machines.ToListAsync();
+            var machines = await _dbContext.Machines.ToListAsync();
+            _logger.LogInformation("取得機台數量：{Count}", machines.Count);
+            return machines;
         }
 
         public async Task<List<AlarmEvent>> GetLatestAlarmEventsAsync(int count)
