@@ -4,7 +4,7 @@
   padding: 30px;
   background: #f9fafb;
   border-radius: 12px;
-  box-shadow: 0 6px 28px 0 rgba(0,0,0,0.11);
+  box-shadow: 0 6px 28px 0 rgba(0, 0, 0, 0.11);
 }
 .fd-title {
   color: #234366;
@@ -25,7 +25,8 @@
   min-width: 600px;
   margin-bottom: 16px;
 }
-.fd-table th, .fd-table td {
+.fd-table th,
+.fd-table td {
   border: 1px solid #e3e3e3;
   padding: 10px 12px;
   text-align: center;
@@ -43,6 +44,166 @@
   color: #bbb;
   font-style: italic;
 }
-.fd-status-success { color: #27ae60; font-weight: bold; }
-.fd-status-error { color: #c0392b; font-weight: bold; }
-.fd-status-normal { color: #808080; }
+.fd-status-success {
+  color: #27ae60;
+  font-weight: bold;
+}
+.fd-status-error {
+  color: #c0392b;
+  font-weight: bold;
+}
+.fd-status-normal {
+  color: #808080;
+}
+
+/* --- 新增機台功能相關樣式 --- */
+
+/* 標題與按鈕的排列 */
+.fd-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+/* 「+ 新增機台」與「取消」按鈕 */
+.fd-add-btn {
+  background: #4591c6;
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(69, 145, 198, 0.2);
+}
+
+.fd-add-btn:hover {
+  background: #3476a3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(69, 145, 198, 0.3);
+}
+
+/* 表單容器：維持與表格一致的白色基調與陰影 */
+.fd-add-form {
+  background: white;
+  border: 1px solid #e3e3e3;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+  animation: fdFadeIn 0.3s ease-out;
+}
+
+/* 輸入群組排列 */
+.fd-input-group {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  flex-wrap: wrap; /* 支援手機板自動換行 */
+}
+
+/* 輸入框美化 */
+.fd-input-group input[type="text"] {
+  padding: 10px 14px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  font-size: 14px;
+  flex: 1;
+  min-width: 180px;
+  transition: border-color 0.2s;
+}
+
+.fd-input-group input[type="text"]:focus {
+  outline: none;
+  border-color: #4591c6;
+  background: #fdfefe;
+}
+
+/* 複選框標籤 */
+.fd-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #234366;
+  font-size: 15px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* 儲存按鈕：使用綠色強調完成 */
+.fd-submit-btn {
+  background: #27ae60;
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 4px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.fd-submit-btn:hover {
+  background: #219150;
+}
+
+/* 出現時的微動畫 */
+@keyframes fdFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 操作按鈕基礎樣式 */
+.fd-btn-start,
+.fd-btn-stop {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.2s;
+  min-width: 60px;
+}
+
+/* 啟用按鈕 (綠色調) */
+.fd-btn-start {
+  background-color: #ebfaef;
+  color: #27ae60;
+  border: 1px solid #27ae60;
+}
+
+.fd-btn-start:hover {
+  background-color: #27ae60;
+  color: white;
+}
+
+/* 停用按鈕 (紅色調) */
+.fd-btn-stop {
+  background-color: #fdf2f2;
+  color: #c0392b;
+  border: 1px solid #c0392b;
+}
+
+.fd-btn-stop:hover {
+  background-color: #c0392b;
+  color: white;
+}
+
+/* 狀態圖示 (剛才提到的類別化) */
+.fd-icon-active {
+  color: #27ae60;
+  font-weight: 600;
+  font-size: 1.2em;
+}
+.fd-icon-inactive {
+  color: #c0392b;
+  font-weight: 600;
+  font-size: 1.2em;
+}

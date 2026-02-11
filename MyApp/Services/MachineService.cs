@@ -39,5 +39,18 @@ namespace MyApp.Services
             await _dbContext.SaveChangesAsync();
             return machine;
         }
+
+        public async Task<bool> ToggleMachineStatusAsync(int id)
+        {
+            var machine = await _dbContext.Machines.FindAsync(id);
+            if (machine == null)
+                return false;
+
+            // 反轉狀態
+            machine.IsActive = !machine.IsActive;
+
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
     }
 }

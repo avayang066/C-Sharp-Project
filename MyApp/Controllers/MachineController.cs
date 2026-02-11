@@ -37,5 +37,19 @@ namespace MyApp.Controllers
             var result = await _service.AddMachineAsync(machine);
             return CreatedAtAction(nameof(GetAllMachines), new { id = result.Id }, result);
         }
+
+        [HttpPut("{id}/toggle")]
+        public async Task<IActionResult> ToggleStatus(int id)
+        {
+            var success = await _service.ToggleMachineStatusAsync(id);
+
+            if (!success)
+            {
+                // 找不到機台時回傳 404
+                return NotFound(new { message = $"機台 ID {id} 不存在" });
+            }
+
+            return Ok(new { message = "狀態已更新" });
+        }
     }
 }

@@ -16,6 +16,8 @@ public class ProductionLogGeneratorService : BackgroundService
         _serviceProvider = serviceProvider;
     }
 
+    private int _executionCount = 0;
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var random = new Random();
@@ -25,7 +27,7 @@ public class ProductionLogGeneratorService : BackgroundService
             using (var scope = _serviceProvider.CreateScope())
             {
                 Console.WriteLine(
-                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] ===== background service running....."
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] background service running....."
                 );
 
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -39,48 +41,57 @@ public class ProductionLogGeneratorService : BackgroundService
                     continue;
                 }
 
-                var log = await GenerateProductionLogAsync(dbContext, machineIds, random);
-                await GenerateAlarmIfNeededAsync(dbContext, log);
-                await CleanupOldLogsAsync(dbContext, machineIds);
+                // 修改為這一行 (傳入 dbContext 和 random)
+                var log = await GenerateProductionLogAsync(dbContext, random);
+
+                // 同時，因為現在 log 有可能是 null (當沒有 Active 機台時)，
+                // 後面的方法需要加一個 null 檢查，否則會噴 NullReferenceException
+                if (log != null)
+                {
+                    await GenerateAlarmIfNeededAsync(dbContext, log);
+                }
+
+                // --- 優化：每執行 10 次才清理一次 ---
+                _executionCount++;
+                if (_executionCount >= 10)
+                {
+                    await CleanupOldLogsAsync(dbContext);
+                    _executionCount = 0;
+                }
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+            await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
         }
     }
 
-    private async Task<ProductionLog> GenerateProductionLogAsync(
+    private async Task<ProductionLog?> GenerateProductionLogAsync(
         ApplicationDbContext dbContext,
-        List<int> machineIds,
         Random random
     )
     {
-        // 隨機挑一個機台 Id
-        int selectedMachineId = machineIds[random.Next(machineIds.Count)];
+        // 1. 直接從資料庫抓取「目前 Active」的機台 Id 清單
+        var activeMachineIds = await dbContext
+            .Machines.Where(m => m.IsActive)
+            .Select(m => m.Id)
+            .ToListAsync();
 
-        // 1. 自動產生 OutputQty (例如 10~100 隨機)
+        // 2. 如果目前沒有任何機台是啟用的，就真的不產出資料
+        if (!activeMachineIds.Any())
+        {
+            return null;
+        }
+
+        // 3. 從「確定啟用的清單」中隨機挑一個
+        int selectedMachineId = activeMachineIds[random.Next(activeMachineIds.Count)];
+
+        // 4. 產生數據邏輯 (保持不變)
         int outputQty = random.Next(10, 101);
+        double yieldRate =
+            (random.NextDouble() < 0.3)
+                ? Math.Round(random.NextDouble() * 0.8, 7)
+                : Math.Round(0.8 + random.NextDouble() * 0.2, 7);
 
-        // 2. YieldRate 隨機，但低於0.80機率為30%
-        double yieldRate;
-        if (random.NextDouble() < 0.3)
-        {
-            // 0.0~0.8
-            yieldRate = Math.Round(random.NextDouble() * 0.8, 7);
-        }
-        else
-        {
-            // 0.8~1.0
-            yieldRate = Math.Round(0.8 + random.NextDouble() * 0.2, 7);
-        }
-
-        // 3. Status依據YieldRate判斷
-        string status;
-        if (yieldRate > 0.90)
-            status = "Success";
-        else if (yieldRate < 0.80)
-            status = "Error";
-        else
-            status = "Normal";
+        string status = yieldRate > 0.90 ? "Success" : (yieldRate < 0.80 ? "Error" : "Normal");
 
         var log = new ProductionLog
         {
@@ -90,6 +101,10 @@ public class ProductionLogGeneratorService : BackgroundService
             OutputQty = outputQty,
             Timestamp = DateTime.Now,
         };
+
+        Console.WriteLine(
+            $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] GENERATE production log for machine {selectedMachineId} SUCCESSFULLY."
+        );
 
         dbContext.ProductionLogs.Add(log);
         await dbContext.SaveChangesAsync();
@@ -113,35 +128,48 @@ public class ProductionLogGeneratorService : BackgroundService
         }
     }
 
-    private async Task CleanupOldLogsAsync(ApplicationDbContext dbContext, List<int> machineIds)
+    private async Task CleanupOldLogsAsync(ApplicationDbContext dbContext)
     {
-        // 只保留每台機台最新100筆資料
-        machineIds = await dbContext.Machines.Select(m => m.Id).ToListAsync();
+        Console.WriteLine($"進入 CleanupOldLogsAsync() 的方法");
+
+        var machineIds = await dbContext.Machines.Select(m => m.Id).ToListAsync();
 
         foreach (var machineId in machineIds)
         {
-            var logIdsToDelete = await dbContext
-                .ProductionLogs.Where(x => x.MachineId == machineId)
-                .OrderByDescending(x => x.Timestamp)
-                .Skip(100)
+            // 1. 找出該機台「由新到舊」排在第 100 筆的那筆資料的 ID
+            var lastKeepId = await dbContext
+                .ProductionLogs.AsNoTracking()
+                .Where(x => x.MachineId == machineId)
+                .OrderByDescending(x => x.Id)
                 .Select(x => x.Id)
-                .ToListAsync();
+                .Skip(99) // 跳過前 99 筆
+                .FirstOrDefaultAsync();
 
-            if (logIdsToDelete.Count > 0)
+            // 如果找不到第 100 筆，代表總數小於 100，直接跳過
+            if (lastKeepId == 0)
+                continue;
+
+            // 2. 執行刪除：只要 ID 比 lastKeepId 小的，就是舊資料
+            // 先刪警報
+            var oldAlarms = dbContext.AlarmEvents.Where(a =>
+                a.MachineId == machineId && a.ProductionLogId < lastKeepId
+            );
+
+            // 再刪日誌
+            var oldLogs = dbContext.ProductionLogs.Where(x =>
+                x.MachineId == machineId && x.Id < lastKeepId
+            );
+
+            int count = await oldLogs.CountAsync();
+            if (count > 0)
             {
-                // 1. 先刪 AlarmEvent (FK: ProductionLogId)
-                var alarmEventsToDelete = dbContext.AlarmEvents.Where(a =>
-                    logIdsToDelete.Contains(a.ProductionLogId)
-                );
-                dbContext.AlarmEvents.RemoveRange(alarmEventsToDelete);
-
-                // 2. 再刪 ProductionLog
-                var logsToDelete = dbContext.ProductionLogs.Where(x =>
-                    logIdsToDelete.Contains(x.Id)
-                );
-                dbContext.ProductionLogs.RemoveRange(logsToDelete);
-
+                dbContext.AlarmEvents.RemoveRange(oldAlarms);
+                dbContext.ProductionLogs.RemoveRange(oldLogs);
                 await dbContext.SaveChangesAsync();
+
+                Console.WriteLine(
+                    $"[Cleanup] 機台 {machineId}: 發現第 100 筆 ID 為 {lastKeepId}，已清理 {count} 筆更舊的資料。"
+                );
             }
         }
     }

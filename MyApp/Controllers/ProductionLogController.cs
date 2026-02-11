@@ -22,7 +22,7 @@ namespace MyApp.Controllers
         public async Task<IActionResult> GetAll()
         {
             Console.WriteLine(
-                $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] ===== Fetching all production logs....."
+                $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] .............. Fetching all production logs .............."
             );
             var logs = await _service.GetLogsAsync();
             return Ok(logs);

@@ -9,5 +9,6 @@ namespace MyApp.Services
         Task<List<Machine>> GetAllMachinesAsync();
         Task<List<AlarmEvent>> GetLatestAlarmEventsAsync(int count);
         Task<Machine> AddMachineAsync(Machine machine);
+        Task<bool> ToggleMachineStatusAsync(int id);
     }
 }

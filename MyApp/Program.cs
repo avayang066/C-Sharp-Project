@@ -24,6 +24,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         "Server=localhost\\SQLEXPRESS;Database=MyAppDB;Trusted_Connection=True;TrustServerCertificate=True;"
     )
 );
+builder.Services.AddControllers();
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -31,6 +32,21 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddHostedService<ProductionLogGeneratorService>();
 builder.Services.AddScoped<ProductionLogService>();
 builder.Services.AddScoped<IMachineService, MachineService>();
+
+// --- 新增：註冊 CORS 服務 ---
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(
+        "AllowAll",
+        policy =>
+        {
+            policy
+                .AllowAnyOrigin() // 允許任何來源（如 localhost:3000）
+                .AllowAnyMethod() // 允許任何方法（PUT, POST, GET, DELETE）
+                .AllowAnyHeader(); // 允許任何 Header
+        }
+    );
+});
 
 // =====================
 // 建立 WebApplication 實例
@@ -59,11 +75,13 @@ if (app.Environment.IsDevelopment())
 }
 app.UseStaticFiles();
 app.UseRouting();
+app.UseCors("AllowAll"); // 必須在這裡「啟用」CORS，順序要在 Routing 之後，Authorization 之前 
 app.UseAuthorization();
 
 // =====================
 // 路由設定
 // =====================
+app.MapControllers(); // API Controller 通常需要這一行來確保 [ApiController] 屬性能被正確映射
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 
 // =====================
