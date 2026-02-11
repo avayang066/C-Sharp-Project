@@ -120,7 +120,7 @@ public class ProductionLogGeneratorService : BackgroundService
                 MachineId = log.MachineId,
                 ProductionLogId = log.Id,
                 AlarmType = "機台異常",
-                Message = $"機台 {log.MachineId} 良率過低，良率 = {log.YieldRate * 100:F2}%",
+                Message = $"機台編號 {log.MachineId} 良率過低，良率 = {log.YieldRate * 100:F2}%",
                 CreatedAt = DateTime.Now,
             };
             dbContext.AlarmEvents.Add(alarm);

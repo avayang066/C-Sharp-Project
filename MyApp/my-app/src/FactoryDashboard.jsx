@@ -37,6 +37,10 @@ const FactoryDashboard = () => {
   const [alarms, setAlarms] = useState([]);
   const [logs, setLogs] = useState([]);
 
+  // --- 新增分頁狀態 ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
+
   // 表單控制與資料狀態
   const [showForm, setShowForm] = useState(false);
   const [newMachine, setNewMachine] = useState({
@@ -85,29 +89,49 @@ const FactoryDashboard = () => {
     } catch (e) {}
   };
 
-  const fetchLogs = async () => {
+  const fetchLogs = async (page = 1) => {
+    // 給予預設值 1
     try {
-      const res = await fetch("/api/productionlog");
-      setLogs(await res.json());
-    } catch (e) {}
+      // 加上防呆：如果 page 是 null 或 undefined，就用 1
+      const pageNum = page || 1;
+      const res = await fetch(`/api/productionlog?page=${pageNum}&pageSize=20`);
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("後端驗證失敗:", errorData);
+        return;
+      }
+
+      const data = await res.json();
+      setLogs(data);
+    } catch (e) {
+      console.error("網路錯誤:", e);
+    }
   };
 
-  // --- Effects ---
+  // ---  Effects 區塊 ---
+  // 1. 當頁碼改變時抓取，並設定定時刷新
+  useEffect(() => {
+    fetchLogs(currentPage); // 立即抓取
+
+    const timer = setInterval(() => {
+      fetchLogs(currentPage);
+    }, 10000); // 每 10 秒刷新當前頁面資料
+
+    return () => clearInterval(timer); // 清除舊的計時器
+  }, [currentPage]); // 依賴項只留 currentPage
+
+  // 2. 機台列表刷新
   useEffect(() => {
     fetchMachines();
     const timer = setInterval(fetchMachines, 30000);
     return () => clearInterval(timer);
   }, []);
 
+  // 3. 警報列表刷新
   useEffect(() => {
     fetchAlarms();
     const timer = setInterval(fetchAlarms, 10000);
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    fetchLogs();
-    const timer = setInterval(fetchLogs, 10000);
     return () => clearInterval(timer);
   }, []);
 
@@ -157,25 +181,23 @@ const FactoryDashboard = () => {
     時間: new Date(a.createdAt).toLocaleString(),
   }));
 
-  const renderLogs = logs.slice(0, 50).map((l) => ({
-    機台編號: l.machineId,
-    狀態: (
-      <span
-        className={
-          l.status === "Success"
-            ? "fd-status-success"
-            : l.status === "Error"
-              ? "fd-status-error"
-              : "fd-status-normal"
-        }
-      >
-        {l.status}
-      </span>
-    ),
-    YieldRate: `${(l.yieldRate * 100).toFixed(1)}%`,
-    OutputQty: l.outputQty,
-    Timestamp: new Date(l.timestamp).toLocaleString(),
-  }));
+  const renderLogs = Array.isArray(logs)
+    ? logs.map((l) => ({
+        機台編號: l.machineId,
+        狀態: (
+          <span
+            className={
+              l.status === "Success" ? "fd-status-success" : "fd-status-error"
+            }
+          >
+            {l.status}
+          </span>
+        ),
+        YieldRate: `${(l.yieldRate * 100).toFixed(1)}%`,
+        OutputQty: l.outputQty,
+        Timestamp: new Date(l.timestamp).toLocaleString(),
+      }))
+    : []; // 如果不是陣列，就給空陣列，避免 slice 報錯
 
   return (
     <div className="factory-dashboard-container">
@@ -231,7 +253,32 @@ const FactoryDashboard = () => {
       <Table columns={alarmCols} data={renderAlarms} />
 
       <h2 className="fd-title">產出資料</h2>
-      <Table columns={logsCols} data={renderLogs} />
+      <div className="fd-table-container-with-pager">
+        <div className="fd-table-wrapper" style={{ marginBottom: 0 }}>
+          <Table columns={logsCols} data={renderLogs} />
+        </div>
+
+        {/* --- 整合型分頁條 --- */}
+        <div className="fd-pagination-footer">
+          <button
+            className="fd-page-btn-sm"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          >
+            ←
+          </button>
+
+          <span className="fd-page-info-sm">第 {currentPage} 頁</span>
+
+          <button
+            className="fd-page-btn-sm"
+            disabled={logs.length < pageSize}
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+          >
+            →
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

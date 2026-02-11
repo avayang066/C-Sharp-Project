@@ -207,3 +207,65 @@
   font-weight: 600;
   font-size: 1.2em;
 }
+
+/* --- 分頁功能相關樣式 --- */
+/* 將表格與分頁包在一起的容器 */
+.fd-table-container-with-pager {
+  background: white;
+  border: 1px solid #e3e3e3;
+  border-radius: 8px;
+  overflow: hidden; /* 確保圓角效果 */
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 30px;
+}
+
+/* 移除原本 wrapper 的底部間距與邊框，交給父容器處理 */
+.fd-table-container-with-pager .fd-table-wrapper {
+  margin-bottom: 0;
+}
+
+.fd-table-container-with-pager .fd-table {
+  margin-bottom: 0;
+  border: none; /* 移除內部表格的大邊框 */
+}
+
+/* 整合型頁腳 */
+.fd-pagination-footer {
+  display: flex;
+  justify-content: flex-end; /* 按鈕靠右，像標準後台管理介面 */
+  align-items: center;
+  padding: 10px 20px;
+  background: #fcfcfc;
+  border-top: 1px solid #eee;
+  gap: 12px;
+}
+
+/* 頁碼文字更精簡 */
+.fd-page-info-sm {
+  color: #234366;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* 小型的分頁按鈕 */
+.fd-page-btn-sm {
+  background: white;
+  color: #4591c6;
+  border: 1px solid #dcdfe6;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.fd-page-btn-sm:hover:not(:disabled) {
+  border-color: #4591c6;
+  background: #f5fafd;
+}
+
+.fd-page-btn-sm:disabled {
+  color: #dcdfe6;
+  cursor: not-allowed;
+  background: #fafafa;
+}

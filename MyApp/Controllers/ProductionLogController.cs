@@ -18,13 +18,14 @@ namespace MyApp.Controllers
             _service = service;
         }
 
+        // 只保留這一個！
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20
+        )
         {
-            Console.WriteLine(
-                $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] .............. Fetching all production logs .............."
-            );
-            var logs = await _service.GetLogsAsync();
+            var logs = await _service.GetLogsAsync(page, pageSize);
             return Ok(logs);
         }
     }
