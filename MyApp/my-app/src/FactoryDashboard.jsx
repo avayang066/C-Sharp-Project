@@ -63,7 +63,7 @@ const FactoryDashboard = () => {
   // ----------------------------------------
   const machineCols = ["機台編號", "機台代號", "機台名稱", "啟用狀態", "操作"];
   const alarmCols = ["類型", "訊息", "時間"];
-  const logsCols = ["機台編號", "狀態", "良率", "產量", "產出時間"];
+  const logsCols = ["機台代號", "狀態", "良率", "產量", "產出時間"];
 
   // ----------------------------------------
   // API 與資料操作區
@@ -221,7 +221,7 @@ const FactoryDashboard = () => {
 
   const renderLogs = Array.isArray(logs)
     ? logs.map((l) => ({
-        機台編號: l.machineId,
+        機台代號: l.machineCode,
         狀態: (
           <span
             className={

@@ -31,6 +31,7 @@ public class ProductionLogGeneratorService : BackgroundService
                 );
 
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
                 // 從資料庫撈出現有機台 Id 清單
                 var machineIds = await dbContext.Machines.Select(m => m.Id).ToListAsync();
 
@@ -41,9 +42,10 @@ public class ProductionLogGeneratorService : BackgroundService
                     continue;
                 }
 
-                // 修改為這一行 (傳入 dbContext 和 random)
+                // --------------- 1. 產生生產日誌
                 var log = await GenerateProductionLogAsync(dbContext, random);
 
+                // --------------- 2. 若符合某條件，產生警報
                 // 同時，因為現在 log 有可能是 null (當沒有 Active 機台時)，
                 // 後面的方法需要加一個 null 檢查，否則會噴 NullReferenceException
                 if (log != null)
@@ -51,6 +53,7 @@ public class ProductionLogGeneratorService : BackgroundService
                     await GenerateAlarmIfNeededAsync(dbContext, log);
                 }
 
+                // --------------- 3. 定時清理舊生產資料
                 // --- 優化：每執行 10 次才清理一次 ---
                 _executionCount++;
                 if (_executionCount >= 10)
@@ -64,6 +67,7 @@ public class ProductionLogGeneratorService : BackgroundService
         }
     }
 
+    // ***** 下面的方法都是 ExecuteAsync() 的秭方法 *****
     private async Task<ProductionLog?> GenerateProductionLogAsync(
         ApplicationDbContext dbContext,
         Random random

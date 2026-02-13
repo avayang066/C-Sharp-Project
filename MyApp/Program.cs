@@ -1,4 +1,7 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MyApp.Data;
 using MyApp.Services;
 using Serilog;
@@ -24,6 +27,21 @@ Log.Warning("啟動");
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();
 
+var jwtKey = builder.Configuration["jwtKey"];
+var jwtIssuer = builder.Configuration["jwtIssuer"];
+
+// 若 jwtKey 為空，自動產生 32 字元亂數金鑰（僅建議開發用）
+if (string.IsNullOrWhiteSpace(jwtKey))
+{
+    // 產生 32 字元亂數（A-Z, a-z, 0-9）
+    var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    var random = new Random();
+    jwtKey = new string(
+        Enumerable.Repeat(chars, 32).Select(s => s[random.Next(s.Length)]).ToArray()
+    );
+    Console.WriteLine($"[警告] jwtKey 未設定，自動產生亂數金鑰：{jwtKey}");
+}
+
 // =====================
 // DI 服務註冊
 // =====================
@@ -35,10 +53,62 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddControllers();
 builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "MyApp API", Version = "v1" });
+    c.AddSecurityDefinition(
+        "Bearer",
+        new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+        {
+            Description = "JWT 授權 (格式: Bearer {token})",
+            Name = "Authorization",
+            In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+            Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+            Scheme = "Bearer",
+        }
+    );
+    c.AddSecurityRequirement(
+        new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+        {
+            {
+                new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                    {
+                        Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                        Id = "Bearer",
+                    },
+                },
+                new string[] { }
+            },
+        }
+    );
+});
+
+builder
+    .Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtIssuer,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+        };
+    });
+builder.Services.AddAuthorization();
 
 builder.Services.AddHostedService<ProductionLogGeneratorService>();
-builder.Services.AddScoped<ProductionLogService>();
+builder.Services.AddScoped<IProductionLogService, ProductionLogService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMachineService, MachineService>();
 
 // --- 新增：註冊 CORS 服務 ---
@@ -83,7 +153,10 @@ if (app.Environment.IsDevelopment())
 }
 app.UseStaticFiles();
 app.UseRouting();
-app.UseCors("AllowAll"); // 必須在這裡「啟用」CORS，順序要在 Routing 之後，Authorization 之前
+app.UseCors("AllowAll");
+app.UseAuthentication();
+
+// 必須在這裡「啟用」CORS，順序要在 Routing 之後，Authorization 之前
 app.UseAuthorization();
 
 // =====================

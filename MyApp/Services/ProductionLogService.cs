@@ -4,10 +4,11 @@ using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
 using MyApp.Data;
 using MyApp.Models;
+using MyApp.Models.Dto;
 
 namespace MyApp.Services
 {
-    public class ProductionLogService
+    public class ProductionLogService : IProductionLogService
     {
         private readonly ApplicationDbContext _dbContext;
 
@@ -16,26 +17,34 @@ namespace MyApp.Services
             _dbContext = dbContext;
         }
 
-        public async Task<List<ProductionLog>> GetLogsAsync(int page = 1, int pageSize = 10)
+        // 取得分頁生產報告
+        public async Task<List<ProductionLogSimpleDto>> GetLogsAsync(
+            int page = 1,
+            int pageSize = 10
+        )
         {
-            // 預防機制：確保頁碼至少從 1 開始
             if (page <= 0)
                 page = 1;
 
             return await _dbContext
                 .ProductionLogs.OrderByDescending(x => x.Timestamp)
-                .Skip((page - 1) * pageSize) // 計算要跳過多少筆
+                .Skip((page - 1) * pageSize)
                 .Take(pageSize)
+                .Select(x => new ProductionLogSimpleDto
+                {
+                    Id = x.Id,
+                    MachineId = x.MachineId,
+                    Status = x.Status,
+                    YieldRate = x.YieldRate,
+                    OutputQty = x.OutputQty,
+                    Timestamp = x.Timestamp,
+                    MachineCode = x.Machine.MachineCode,
+                    MachineName = x.Machine.MachineName,
+                })
                 .ToListAsync();
         }
 
-        public async Task<List<ProductionLog>> GetAllLogsAsync()
-        {
-            return await _dbContext
-                .ProductionLogs.OrderByDescending(x => x.Timestamp)
-                .ToListAsync();
-        }
-
+        // Export 生產報告到 Excel
         public async Task<(byte[] file, string fileName)> ExportAllLogsToExcelAsync()
         {
             var logs = await GetAllLogsAsync();
@@ -90,6 +99,16 @@ namespace MyApp.Services
                 )
                 .Select(x => x.YieldRate)
                 .AverageAsync();
+        }
+
+        // ****
+        // ExportAllLogsToExcelAsync() Helper
+        // ****
+        public async Task<List<ProductionLog>> GetAllLogsAsync()
+        {
+            return await _dbContext
+                .ProductionLogs.OrderByDescending(x => x.Timestamp)
+                .ToListAsync();
         }
     }
 }

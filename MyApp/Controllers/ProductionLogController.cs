@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using ClosedXML.Excel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyApp.Data;
@@ -9,13 +10,17 @@ using MyApp.Services;
 namespace MyApp.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class ProductionLogController : ControllerBase
     {
         private readonly ApplicationDbContext _dbContext;
-        private readonly ProductionLogService _service;
+        private readonly IProductionLogService _service;
 
-        public ProductionLogController(ApplicationDbContext dbContext, ProductionLogService service)
+        public ProductionLogController(
+            ApplicationDbContext dbContext,
+            IProductionLogService service
+        )
         {
             _dbContext = dbContext;
             _service = service;

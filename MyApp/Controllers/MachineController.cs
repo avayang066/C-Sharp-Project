@@ -1,10 +1,12 @@
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyApp.Services;
 
 namespace MyApp.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class MachineController : ControllerBase
     {
