@@ -98,6 +98,13 @@
   box-shadow: 0 6px 28px 0 rgba(0, 0, 0, 0.11);
 }
 
+.user-form-wrapper {
+  max-width: 400px;
+  height: 600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
 .fd-header-row {
   display: flex;
   align-items: center;

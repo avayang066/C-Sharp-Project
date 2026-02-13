@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import PageLinks from "./CommonPage";
 import "./factory-dashboard.css";
 
 const Table = ({ columns, data }) => (
@@ -49,14 +50,7 @@ const FactoryDashboard = () => {
   });
   const [kpiTotalOutput, setKpiTotalOutput] = useState("-");
   const [kpiAverageYieldRate, setKpiAverageYieldRate] = useState("-");
-  const currentUrl = window.location.pathname;
-  const pageLinks = [
-    { name: "首頁", url: "/" },
-    { name: "生產資料", url: "/dashboard" },
-    { name: "警報", url: "/alarm" },
-    { name: "機台", url: "/machine" },
-    { name: "統計", url: "/statistic" },
-  ];
+
 
   // ----------------------------------------
   // 欄位定義區
@@ -68,11 +62,21 @@ const FactoryDashboard = () => {
   // ----------------------------------------
   // API 與資料操作區
   // ----------------------------------------
+  // 共用 fetchWithAuth 函式
+  const fetchWithAuth = (url, options = {}) => {
+    const token = localStorage.getItem("token");
+    const headers = {
+      ...(options.headers || {}),
+      Authorization: "Bearer " + token
+    };
+    return fetch(url, { ...options, headers });
+  };
+
   // 機台啟用/停用
   const handleToggleActive = async (machine) => {
     try {
-      const res = await fetch(`/api/machine/${machine.id}/toggle`, {
-        method: "PUT",
+      const res = await fetchWithAuth(`/api/machine/${machine.id}/toggle`, {
+        method: "PUT"
       });
       if (res.ok) {
         fetchMachines();
@@ -89,9 +93,9 @@ const FactoryDashboard = () => {
   // 抓取 KPI 以及平均良率
   const fetchKpiAndAvarage = async () => {
     try {
-      const res1 = await fetch("/api/productionlog/kpi-total-output");
+      const res1 = await fetchWithAuth("/api/productionlog/kpi-total-output");
       setKpiTotalOutput(await res1.json());
-      const res2 = await fetch("/api/productionlog/kpi-average-yieldrate");
+      const res2 = await fetchWithAuth("/api/productionlog/kpi-average-yieldrate");
       const avg = await res2.json();
       setKpiAverageYieldRate(avg.toFixed(2));
     } catch (e) {
@@ -103,7 +107,7 @@ const FactoryDashboard = () => {
   // 抓取機台資料
   const fetchMachines = async () => {
     try {
-      const res = await fetch("/api/machine");
+      const res = await fetchWithAuth("/api/machine");
       setMachines(await res.json());
     } catch (e) {}
   };
@@ -111,7 +115,7 @@ const FactoryDashboard = () => {
   // 抓取警報資料
   const fetchAlarms = async () => {
     try {
-      const res = await fetch("/api/machine/alarms/10");
+      const res = await fetchWithAuth("/api/machine/alarms/10");
       setAlarms(await res.json());
     } catch (e) {}
   };
@@ -120,7 +124,7 @@ const FactoryDashboard = () => {
   const fetchLogs = async (page = 1) => {
     try {
       const pageNum = page || 1;
-      const res = await fetch(`/api/productionlog?page=${pageNum}&pageSize=10`);
+      const res = await fetchWithAuth(`/api/productionlog?page=${pageNum}&pageSize=10`);
       if (!res.ok) {
         const errorData = await res.json();
         console.error("後端驗證失敗:", errorData);
@@ -137,10 +141,10 @@ const FactoryDashboard = () => {
   const handleAddMachine = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("/api/machine", {
+      const res = await fetchWithAuth("/api/machine", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newMachine),
+        body: JSON.stringify(newMachine)
       });
       if (res.ok) {
         setShowForm(false);
@@ -155,7 +159,7 @@ const FactoryDashboard = () => {
   // 匯出產出資料
   const exportLogs = async () => {
     try {
-      const res = await fetch("/api/productionlog/export");
+      const res = await fetchWithAuth("/api/productionlog/export");
       if (!res.ok) {
         alert("匯出失敗");
         return;
@@ -237,24 +241,6 @@ const FactoryDashboard = () => {
       }))
     : [];
 
-  // 產生分頁連結區塊
-  const renderPageLinks = () => (
-    <div className="fd-page-link-row">
-      {pageLinks.map((link) => (
-        <a
-          key={link.name}
-          href={link.url}
-          className={
-            "fd-page-link-btn" +
-            (currentUrl === link.url ? " fd-page-link-active" : "")
-          }
-        >
-          {link.name}
-        </a>
-      ))}
-    </div>
-  );
-
   // ----------------------------------------
   // 自動刷新區
   // ----------------------------------------
@@ -290,7 +276,7 @@ const FactoryDashboard = () => {
   return (
     <div className="factory-dashboard-container">
       {/* 分頁連結區塊 */}
-      {renderPageLinks()}
+      <PageLinks />
 
       {/* KPI和良率卡片 */}
       <div className="fd-kpi-row">

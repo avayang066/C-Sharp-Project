@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './index.css';
 import FactoryDashboard from './FactoryDashboard';
-// import OtherPage from './OtherPage';
+import User from './User';
 import reportWebVitals from './reportWebVitals';
 
 const root = createRoot(document.getElementById('root'));
@@ -12,7 +12,7 @@ root.render(
     <BrowserRouter>
       <Routes>
         <Route path="/dashboard" element={<FactoryDashboard />} />
-        {/* <Route path="/other" element={<OtherPage />} /> */}
+        <Route path="/user" element={<User />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
