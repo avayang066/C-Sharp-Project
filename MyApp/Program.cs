@@ -7,8 +7,16 @@ using Serilog;
 // Serilog 設定（Log 檔案）
 // =====================
 Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Warning() // 只記錄 Warning 以上
     .WriteTo.File("Logs/app.log", rollingInterval: RollingInterval.Day)
     .CreateLogger();
+Log.Warning("啟動");
+
+// Log.Logger = new LoggerConfiguration()
+//     .MinimumLevel.Information() // 改成記錄 Information 以上
+//     .WriteTo.File("Logs/app.log", rollingInterval: RollingInterval.Day)
+//     .CreateLogger();
+// Log.Information("啟動");
 
 // =====================
 // 建立 WebApplicationBuilder
@@ -75,7 +83,7 @@ if (app.Environment.IsDevelopment())
 }
 app.UseStaticFiles();
 app.UseRouting();
-app.UseCors("AllowAll"); // 必須在這裡「啟用」CORS，順序要在 Routing 之後，Authorization 之前 
+app.UseCors("AllowAll"); // 必須在這裡「啟用」CORS，順序要在 Routing 之後，Authorization 之前
 app.UseAuthorization();
 
 // =====================

@@ -48,6 +48,10 @@ namespace MyApp.Data
                 .WithMany()
                 .HasForeignKey(p => p.MachineId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Machine>().HasIndex(x => x.MachineCode);
+            modelBuilder.Entity<Machine>().HasIndex(x => x.IsActive);
+            modelBuilder.Entity<AlarmEvent>().HasIndex(x => x.CreatedAt);
         }
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyApp.Data;
 using MyApp.Models;
+using MyApp.Services;
 
 namespace MyApp.Controllers
 {
@@ -20,6 +21,7 @@ namespace MyApp.Controllers
             _service = service;
         }
 
+        // 取得生產報告
         [HttpGet]
         public async Task<IActionResult> GetAll(
             [FromQuery] int page = 1,
@@ -30,6 +32,7 @@ namespace MyApp.Controllers
             return Ok(logs);
         }
 
+        //
         [HttpGet("export")]
         public async Task<IActionResult> ExportAllToExcel()
         {
@@ -39,6 +42,22 @@ namespace MyApp.Controllers
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 fileName
             );
+        }
+
+        // KPI：近一個月總產量
+        [HttpGet("kpi-total-output")]
+        public async Task<IActionResult> GetKpiTotalOutput()
+        {
+            var total = await _service.GetTodayTotalOutputAsync();
+            return Ok(total);
+        }
+
+        // KPI：近一個月平均良率
+        [HttpGet("kpi-average-yieldrate")]
+        public async Task<IActionResult> GetKpiAverageYieldRate()
+        {
+            var avg = await _service.GetAverageYieldRateAsync();
+            return Ok(avg);
         }
     }
 }

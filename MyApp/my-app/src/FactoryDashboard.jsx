@@ -47,6 +47,16 @@ const FactoryDashboard = () => {
     machineName: "",
     isActive: true,
   });
+  const [kpiTotalOutput, setKpiTotalOutput] = useState("-");
+  const [kpiAverageYieldRate, setKpiAverageYieldRate] = useState("-");
+  const currentUrl = window.location.pathname;
+  const pageLinks = [
+    { name: "首頁", url: "/" },
+    { name: "生產資料", url: "/dashboard" },
+    { name: "警報", url: "/alarm" },
+    { name: "機台", url: "/machine" },
+    { name: "統計", url: "/statistic" },
+  ];
 
   // ----------------------------------------
   // 欄位定義區
@@ -73,6 +83,20 @@ const FactoryDashboard = () => {
     } catch (e) {
       console.error("Toggle error:", e);
       alert("連線伺服器失敗");
+    }
+  };
+
+  // 抓取 KPI 以及平均良率
+  const fetchKpiAndAvarage = async () => {
+    try {
+      const res1 = await fetch("/api/productionlog/kpi-total-output");
+      setKpiTotalOutput(await res1.json());
+      const res2 = await fetch("/api/productionlog/kpi-average-yieldrate");
+      const avg = await res2.json();
+      setKpiAverageYieldRate(avg.toFixed(2));
+    } catch (e) {
+      setKpiTotalOutput("-");
+      setKpiAverageYieldRate("-");
     }
   };
 
@@ -213,6 +237,24 @@ const FactoryDashboard = () => {
       }))
     : [];
 
+  // 產生分頁連結區塊
+  const renderPageLinks = () => (
+    <div className="fd-page-link-row">
+      {pageLinks.map((link) => (
+        <a
+          key={link.name}
+          href={link.url}
+          className={
+            "fd-page-link-btn" +
+            (currentUrl === link.url ? " fd-page-link-active" : "")
+          }
+        >
+          {link.name}
+        </a>
+      ))}
+    </div>
+  );
+
   // ----------------------------------------
   // 自動刷新區
   // ----------------------------------------
@@ -236,11 +278,32 @@ const FactoryDashboard = () => {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    fetchKpiAndAvarage();
+    const timer = setInterval(fetchKpiAndAvarage, 10000);
+    return () => clearInterval(timer);
+  }, []);
+
   // ----------------------------------------
   // HTML
   // ----------------------------------------
   return (
     <div className="factory-dashboard-container">
+      {/* 分頁連結區塊 */}
+      {renderPageLinks()}
+
+      {/* KPI和良率卡片 */}
+      <div className="fd-kpi-row">
+        <div className="fd-kpi-card">
+          <div className="fd-kpi-label">近一個月總產量</div>
+          <div className="fd-kpi-value">{kpiTotalOutput}</div>
+        </div>
+        <div className="fd-kpi-card">
+          <div className="fd-kpi-label">近一個月平均良率</div>
+          <div className="fd-kpi-value">{kpiAverageYieldRate}%</div>
+        </div>
+      </div>
+
       <div className="fd-header-row">
         <h2 className="fd-title" style={{ marginTop: 0 }}>
           機台資訊

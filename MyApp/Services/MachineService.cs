@@ -9,6 +9,8 @@ namespace MyApp.Services
 {
     public class MachineService : IMachineService
     {
+        // 高併發防護：同時最多允許 5 人新增或切換狀態
+        private static readonly SemaphoreSlim _machineSemaphore = new SemaphoreSlim(5);
         private readonly ApplicationDbContext _dbContext;
         private readonly ILogger<MachineService> _logger;
 
@@ -35,22 +37,38 @@ namespace MyApp.Services
 
         public async Task<Machine> AddMachineAsync(Machine machine)
         {
-            _dbContext.Machines.Add(machine);
-            await _dbContext.SaveChangesAsync();
-            return machine;
+            await _machineSemaphore.WaitAsync();
+            try
+            {
+                _dbContext.Machines.Add(machine);
+                await _dbContext.SaveChangesAsync();
+                return machine;
+            }
+            finally
+            {
+                _machineSemaphore.Release();
+            }
         }
 
         public async Task<bool> ToggleMachineStatusAsync(int id)
         {
-            var machine = await _dbContext.Machines.FindAsync(id);
-            if (machine == null)
-                return false;
+            await _machineSemaphore.WaitAsync();
+            try
+            {
+                var machine = await _dbContext.Machines.FindAsync(id);
+                if (machine == null)
+                    return false;
 
-            // 反轉狀態
-            machine.IsActive = !machine.IsActive;
+                // 反轉狀態
+                machine.IsActive = !machine.IsActive;
 
-            await _dbContext.SaveChangesAsync();
-            return true;
+                await _dbContext.SaveChangesAsync();
+                return true;
+            }
+            finally
+            {
+                _machineSemaphore.Release();
+            }
         }
     }
 }
