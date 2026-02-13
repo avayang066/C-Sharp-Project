@@ -33,15 +33,14 @@ const Table = ({ columns, data }) => (
 );
 
 const FactoryDashboard = () => {
+  // ----------------------------------------
+  // 狀態管理區
+  // ----------------------------------------
   const [machines, setMachines] = useState([]);
   const [alarms, setAlarms] = useState([]);
   const [logs, setLogs] = useState([]);
-
-  // --- 新增分頁狀態 ---
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 20;
-
-  // 表單控制與資料狀態
+  const pageSize = 10;
   const [showForm, setShowForm] = useState(false);
   const [newMachine, setNewMachine] = useState({
     machineCode: "",
@@ -49,20 +48,23 @@ const FactoryDashboard = () => {
     isActive: true,
   });
 
-  // 定義欄位名稱
+  // ----------------------------------------
+  // 欄位定義區
+  // ----------------------------------------
   const machineCols = ["機台編號", "機台代號", "機台名稱", "啟用狀態", "操作"];
   const alarmCols = ["類型", "訊息", "時間"];
   const logsCols = ["機台編號", "狀態", "良率", "產量", "產出時間"];
 
+  // ----------------------------------------
+  // API 與資料操作區
+  // ----------------------------------------
+  // 機台啟用/停用
   const handleToggleActive = async (machine) => {
     try {
-      // 簡化參數：因為後端 ToggleMachineStatusAsync 不需要 Body，所以也拿掉 headers 和 body
       const res = await fetch(`/api/machine/${machine.id}/toggle`, {
         method: "PUT",
       });
-
       if (res.ok) {
-        // 成功後刷新列表
         fetchMachines();
       } else {
         const errorData = await res.json();
@@ -74,7 +76,7 @@ const FactoryDashboard = () => {
     }
   };
 
-  // --- API 抓取函式 ---
+  // 抓取機台資料
   const fetchMachines = async () => {
     try {
       const res = await fetch("/api/machine");
@@ -82,6 +84,7 @@ const FactoryDashboard = () => {
     } catch (e) {}
   };
 
+  // 抓取警報資料
   const fetchAlarms = async () => {
     try {
       const res = await fetch("/api/machine/alarms/10");
@@ -89,19 +92,16 @@ const FactoryDashboard = () => {
     } catch (e) {}
   };
 
+  // 抓取產出資料
   const fetchLogs = async (page = 1) => {
-    // 給予預設值 1
     try {
-      // 加上防呆：如果 page 是 null 或 undefined，就用 1
       const pageNum = page || 1;
-      const res = await fetch(`/api/productionlog?page=${pageNum}&pageSize=20`);
-
+      const res = await fetch(`/api/productionlog?page=${pageNum}&pageSize=10`);
       if (!res.ok) {
         const errorData = await res.json();
         console.error("後端驗證失敗:", errorData);
         return;
       }
-
       const data = await res.json();
       setLogs(data);
     } catch (e) {
@@ -109,33 +109,7 @@ const FactoryDashboard = () => {
     }
   };
 
-  // ---  Effects 區塊 ---
-  // 1. 當頁碼改變時抓取，並設定定時刷新
-  useEffect(() => {
-    fetchLogs(currentPage); // 立即抓取
-
-    const timer = setInterval(() => {
-      fetchLogs(currentPage);
-    }, 10000); // 每 10 秒刷新當前頁面資料
-
-    return () => clearInterval(timer); // 清除舊的計時器
-  }, [currentPage]); // 依賴項只留 currentPage
-
-  // 2. 機台列表刷新
-  useEffect(() => {
-    fetchMachines();
-    const timer = setInterval(fetchMachines, 30000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // 3. 警報列表刷新
-  useEffect(() => {
-    fetchAlarms();
-    const timer = setInterval(fetchAlarms, 10000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // --- 處理新增機台 ---
+  // 新增機台
   const handleAddMachine = async (e) => {
     e.preventDefault();
     try {
@@ -147,14 +121,55 @@ const FactoryDashboard = () => {
       if (res.ok) {
         setShowForm(false);
         setNewMachine({ machineCode: "", machineName: "", isActive: true });
-        fetchMachines(); // 成功後重新整理列表
+        fetchMachines();
       }
     } catch (e) {
       alert("新增失敗");
     }
   };
 
-  // --- 資料美化渲染 (只保留這一份宣告) ---
+  // 匯出產出資料
+  const exportLogs = async () => {
+    try {
+      const res = await fetch("/api/productionlog/export");
+      if (!res.ok) {
+        alert("匯出失敗");
+        return;
+      }
+      const blob = await res.blob();
+      const disposition = res.headers.get("Content-Disposition");
+      let fileName = "export.xlsx";
+      if (disposition) {
+        const match = disposition.match(/filename\*=UTF-8''([^;\n]+)/);
+        if (match) {
+          let raw = match[1];
+          const semiIdx = raw.indexOf(";");
+          if (semiIdx !== -1) raw = raw.substring(0, semiIdx);
+          fileName = decodeURIComponent(raw);
+        } else if (disposition.includes("filename=")) {
+          let raw = disposition.split("filename=")[1];
+          const semiIdx = raw.indexOf(";");
+          if (semiIdx !== -1) raw = raw.substring(0, semiIdx);
+          fileName = decodeURIComponent(raw.replace(/\"/g, ""));
+        }
+        if (!fileName.endsWith(".xlsx")) fileName += ".xlsx";
+      }
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      alert("匯出失敗");
+    }
+  };
+
+  // ----------------------------------------
+  // 資料渲染區
+  // ----------------------------------------
   const renderMachines = machines.map((m) => ({
     Id: m.id,
     編號: m.machineCode,
@@ -175,7 +190,6 @@ const FactoryDashboard = () => {
   }));
 
   const renderAlarms = alarms.slice(0, 50).map((a) => ({
-    // Id: a.id,
     類型: a.alarmType,
     訊息: a.message,
     時間: new Date(a.createdAt).toLocaleString(),
@@ -197,8 +211,34 @@ const FactoryDashboard = () => {
         OutputQty: l.outputQty,
         Timestamp: new Date(l.timestamp).toLocaleString(),
       }))
-    : []; // 如果不是陣列，就給空陣列，避免 slice 報錯
+    : [];
 
+  // ----------------------------------------
+  // 自動刷新區
+  // ----------------------------------------
+  useEffect(() => {
+    fetchLogs(currentPage);
+    const timer = setInterval(() => {
+      fetchLogs(currentPage);
+    }, 10000);
+    return () => clearInterval(timer);
+  }, [currentPage]);
+
+  useEffect(() => {
+    fetchMachines();
+    const timer = setInterval(fetchMachines, 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    fetchAlarms();
+    const timer = setInterval(fetchAlarms, 10000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // ----------------------------------------
+  // HTML
+  // ----------------------------------------
   return (
     <div className="factory-dashboard-container">
       <div className="fd-header-row">
@@ -207,6 +247,13 @@ const FactoryDashboard = () => {
         </h2>
         <button className="fd-add-btn" onClick={() => setShowForm(!showForm)}>
           {showForm ? "取消新增" : "+ 新增機台"}
+        </button>
+        <button
+          className="fd-export-btn"
+          style={{ marginLeft: 8 }}
+          onClick={exportLogs}
+        >
+          匯出
         </button>
       </div>
 

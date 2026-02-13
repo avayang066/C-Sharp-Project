@@ -1,153 +1,185 @@
+/* 表單欄位與 checkbox 樣式 */
+.fd-checkbox-label input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+}
+.fd-checkbox-label {
+  margin-right: 16px;
+}
+.fd-input-group input {
+  padding: 8px 12px;
+  margin: 15px;
+}
+/* 1. 全域變數定義 - 方便以後一鍵換色 */
+:root {
+  --primary-blue: #4591c6;
+  --dark-blue: #234366;
+  --hover-blue: #3476a3;
+  --success-green: #27ae60;
+  --error-red: #c0392b;
+  --border-color: #e3e3e3;
+  --bg-light: #f9fafb;
+  --white: #ffffff;
+}
+
+/* 2. 容器主框架 */
 .factory-dashboard-container {
   max-width: 1080px;
-  margin: 40px auto 0 auto;
+  margin: 40px auto;
   padding: 30px;
-  background: #f9fafb;
+  background: var(--bg-light);
   border-radius: 12px;
   box-shadow: 0 6px 28px 0 rgba(0, 0, 0, 0.11);
 }
+
+.fd-header-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.fd-header-row .fd-title {
+  flex: 1;
+}
+
+.fd-header-row .fd-add-btn,
+.fd-header-row .fd-export-btn {
+  margin-left: 10px;
+}
+
+.fd-header-row .fd-btn-group {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
 .fd-title {
-  color: #234366;
-  border-left: 5px solid #4591c6;
+  color: var(--dark-blue);
+  border-left: 5px solid var(--primary-blue);
   padding-left: 10px;
-  margin-top: 32px;
-  margin-bottom: 16px;
+  margin: 32px 0 16px 0;
 }
-.fd-table-wrapper {
-  overflow-x: auto;
-  margin-bottom: 30px;
-}
+
+/* 3. 通用表格樣式 (Table) */
 .fd-table {
   width: 100%;
   border-collapse: collapse;
-  background: white;
+  background: var(--white);
   font-size: 16px;
   min-width: 600px;
-  margin-bottom: 16px;
 }
+
 .fd-table th,
 .fd-table td {
-  border: 1px solid #e3e3e3;
+  border: 1px solid var(--border-color);
   padding: 10px 12px;
   text-align: center;
 }
+
 .fd-table th {
   background: #f2f6fa;
-  color: #234366;
+  color: var(--dark-blue);
   font-weight: 700;
 }
+
 .fd-table tbody tr:hover {
   background: #f5fafd;
   transition: background 0.2s;
+}
+
+/* 4. 分頁整合型容器 (Pagination Wrap) */
+.fd-table-container-with-pager {
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 30px;
+}
+
+.fd-table-container-with-pager .fd-table {
+  border: none;
+}
+.fd-table-container-with-pager .fd-table-wrapper {
+  margin-bottom: 0;
+}
+
+.fd-pagination-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 10px 20px;
+  background: #fcfcfc;
+  border-top: 1px solid #eeeeee;
+  gap: 12px;
+}
+
+/* 5. 按鈕與輸入組件 (Components) */
+.fd-add-btn,
+.fd-submit-btn,
+.fd-page-btn-sm {
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fd-add-btn {
+  background: var(--primary-blue);
+  color: var(--white);
+  padding: 12px 18px;
+  font-size: 15px;
+}
+
+.fd-export-btn {
+  background: var(--primary-blue);
+  color: var(--white);
+  padding: 12px 18px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 15px;
+}
+
+.fd-submit-btn {
+  background: var(--success-green);
+  color: var(--white);
+  padding: 10px 25px;
+}
+
+.fd-page-btn-sm {
+  background: var(--white);
+  color: var(--primary-blue);
+  border: 1px solid #dcdfe6;
+  padding: 4px 12px;
+}
+
+.fd-page-btn-sm:disabled {
+  color: #dcdfe6;
+  cursor: not-allowed;
+  background: #fafafa;
+}
+
+/* 6. 狀態與標籤 (Status) */
+.fd-status-success,
+.fd-icon-active {
+  color: var(--success-green);
+  font-weight: bold;
+}
+.fd-status-error,
+.fd-icon-inactive {
+  color: var(--error-red);
+  font-weight: bold;
 }
 .fd-no-data {
   color: #bbb;
   font-style: italic;
 }
-.fd-status-success {
-  color: #27ae60;
-  font-weight: bold;
-}
-.fd-status-error {
-  color: #c0392b;
-  font-weight: bold;
-}
-.fd-status-normal {
-  color: #808080;
-}
 
-/* --- 新增機台功能相關樣式 --- */
-
-/* 標題與按鈕的排列 */
-.fd-header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-/* 「+ 新增機台」與「取消」按鈕 */
-.fd-add-btn {
-  background: #4591c6;
-  color: white;
-  border: none;
-  padding: 8px 18px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 6px rgba(69, 145, 198, 0.2);
-}
-
-.fd-add-btn:hover {
-  background: #3476a3;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(69, 145, 198, 0.3);
-}
-
-/* 表單容器：維持與表格一致的白色基調與陰影 */
-.fd-add-form {
-  background: white;
-  border: 1px solid #e3e3e3;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 25px;
-  animation: fdFadeIn 0.3s ease-out;
-}
-
-/* 輸入群組排列 */
-.fd-input-group {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-  flex-wrap: wrap; /* 支援手機板自動換行 */
-}
-
-/* 輸入框美化 */
-.fd-input-group input[type="text"] {
-  padding: 10px 14px;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  font-size: 14px;
-  flex: 1;
-  min-width: 180px;
-  transition: border-color 0.2s;
-}
-
-.fd-input-group input[type="text"]:focus {
-  outline: none;
-  border-color: #4591c6;
-  background: #fdfefe;
-}
-
-/* 複選框標籤 */
-.fd-checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #234366;
-  font-size: 15px;
-  cursor: pointer;
-  user-select: none;
-}
-
-/* 儲存按鈕：使用綠色強調完成 */
-.fd-submit-btn {
-  background: #27ae60;
-  color: white;
-  border: none;
-  padding: 10px 25px;
-  border-radius: 4px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.fd-submit-btn:hover {
-  background: #219150;
-}
-
-/* 出現時的微動畫 */
+/* 7. 動畫 (Animation) */
 @keyframes fdFadeIn {
   from {
     opacity: 0;
@@ -158,114 +190,6 @@
     transform: translateY(0);
   }
 }
-
-/* 操作按鈕基礎樣式 */
-.fd-btn-start,
-.fd-btn-stop {
-  padding: 4px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 13px;
-  transition: all 0.2s;
-  min-width: 60px;
-}
-
-/* 啟用按鈕 (綠色調) */
-.fd-btn-start {
-  background-color: #ebfaef;
-  color: #27ae60;
-  border: 1px solid #27ae60;
-}
-
-.fd-btn-start:hover {
-  background-color: #27ae60;
-  color: white;
-}
-
-/* 停用按鈕 (紅色調) */
-.fd-btn-stop {
-  background-color: #fdf2f2;
-  color: #c0392b;
-  border: 1px solid #c0392b;
-}
-
-.fd-btn-stop:hover {
-  background-color: #c0392b;
-  color: white;
-}
-
-/* 狀態圖示 (剛才提到的類別化) */
-.fd-icon-active {
-  color: #27ae60;
-  font-weight: 600;
-  font-size: 1.2em;
-}
-.fd-icon-inactive {
-  color: #c0392b;
-  font-weight: 600;
-  font-size: 1.2em;
-}
-
-/* --- 分頁功能相關樣式 --- */
-/* 將表格與分頁包在一起的容器 */
-.fd-table-container-with-pager {
-  background: white;
-  border: 1px solid #e3e3e3;
-  border-radius: 8px;
-  overflow: hidden; /* 確保圓角效果 */
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-  margin-bottom: 30px;
-}
-
-/* 移除原本 wrapper 的底部間距與邊框，交給父容器處理 */
-.fd-table-container-with-pager .fd-table-wrapper {
-  margin-bottom: 0;
-}
-
-.fd-table-container-with-pager .fd-table {
-  margin-bottom: 0;
-  border: none; /* 移除內部表格的大邊框 */
-}
-
-/* 整合型頁腳 */
-.fd-pagination-footer {
-  display: flex;
-  justify-content: flex-end; /* 按鈕靠右，像標準後台管理介面 */
-  align-items: center;
-  padding: 10px 20px;
-  background: #fcfcfc;
-  border-top: 1px solid #eee;
-  gap: 12px;
-}
-
-/* 頁碼文字更精簡 */
-.fd-page-info-sm {
-  color: #234366;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-/* 小型的分頁按鈕 */
-.fd-page-btn-sm {
-  background: white;
-  color: #4591c6;
-  border: 1px solid #dcdfe6;
-  padding: 4px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: all 0.2s;
-}
-
-.fd-page-btn-sm:hover:not(:disabled) {
-  border-color: #4591c6;
-  background: #f5fafd;
-}
-
-.fd-page-btn-sm:disabled {
-  color: #dcdfe6;
-  cursor: not-allowed;
-  background: #fafafa;
+.fd-add-form {
+  animation: fdFadeIn 0.3s ease-out;
 }
