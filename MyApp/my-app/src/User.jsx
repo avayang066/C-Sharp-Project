@@ -2,12 +2,33 @@ import React, { useState } from "react";
 import PageLinks from "./CommonPage";
 import "./user.css";
 
+// 取得「仍然有效」的 token。後端簽發的 token 只有 2 小時效期
+// （UserService.GenerateJwtToken），過期或格式錯誤時順手清掉並回傳 null，
+// 否則畫面會誤判為已登入而藏起登入表單。
+export const getValidToken = () => {
+  const token = localStorage.getItem("token");
+  if (!token) return null;
+  try {
+    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const payload = JSON.parse(atob(base64));
+    // exp 為 Unix 秒數；沒有 exp 的 token 一律視為無效
+    if (!payload.exp || payload.exp * 1000 <= Date.now()) {
+      localStorage.removeItem("token");
+      return null;
+    }
+    return token;
+  } catch {
+    localStorage.removeItem("token");
+    return null;
+  }
+};
+
 const User = () => {
   const [mode, setMode] = useState("login"); // "login" or "register"
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
+  const [isLoggedIn, setIsLoggedIn] = useState(!!getValidToken());
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {

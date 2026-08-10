@@ -27,7 +27,8 @@
   border-radius: 8px;
   padding: 18px 32px 12px 32px;
   box-shadow: 0 2px 12px #0001;
-  min-width: 260px;
+  width: 100%;
+  max-width: 320px;
   text-align: center;
   margin-bottom: 32px;
 }
@@ -77,13 +78,27 @@
   margin-top: 8px;
   width: 100%;
 }
+
+/* 登入／註冊頁沿用 dashboard 的 .fd-input-group，但這裡是縱向排列。
+   dashboard 的 flex: 1 1 220px 在縱向會變成「高度 220px」，需覆蓋掉。 */
+.user-form-wrapper .fd-input-group {
+  flex-direction: column;
+  align-items: center;
+}
+.user-form-wrapper .fd-input-group input {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 260px;
+}
 .user-form-group {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 .user-form-group input {
-  width: 260px;
+  /* 原本寫死 260px，窄螢幕會溢出 */
+  width: 100%;
+  max-width: 260px;
   font-size: 18px;
   margin-bottom: 12px;
   padding: 8px 12px;
@@ -130,4 +145,33 @@
 @keyframes fdFadeIn {
   from { opacity: 0; transform: translateY(-5px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* RWD 斷點 */
+@media (max-width: 600px) {
+  .user-container {
+    margin: 0;
+    padding: 16px 12px;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .user-tab-row {
+    flex-wrap: wrap;
+  }
+
+  .user-tab-btn {
+    margin-bottom: 16px;
+  }
+
+  .user-card-value {
+    font-size: 26px;
+  }
+
+  /* 送出／登出鈕滿寬，方便單手點擊 */
+  .user-submit-btn,
+  .user-logout-btn {
+    width: 100%;
+    max-width: 260px;
+  }
 }

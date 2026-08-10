@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 import PageLinks from "./CommonPage";
+import { getValidToken } from "./User";
 import "./factory-dashboard.css";
 
 const Table = ({ columns, data }) => (
@@ -50,6 +52,8 @@ const FactoryDashboard = () => {
   });
   const [kpiTotalOutput, setKpiTotalOutput] = useState("-");
   const [kpiAverageYieldRate, setKpiAverageYieldRate] = useState("-");
+  // 是否持有有效 token。為 false 時停止所有輪詢並導回登入頁
+  const [isAuthed, setIsAuthed] = useState(() => !!getValidToken());
 
 
   // ----------------------------------------
@@ -63,13 +67,25 @@ const FactoryDashboard = () => {
   // API 與資料操作區
   // ----------------------------------------
   // 共用 fetchWithAuth 函式
-  const fetchWithAuth = (url, options = {}) => {
-    const token = localStorage.getItem("token");
+  // token 不存在／已過期，或後端回 401 時，標記為未授權（畫面會導回 /user）。
+  // 未授權時回傳一個 401 Response，讓呼叫端統一用 res.ok 判斷即可。
+  const fetchWithAuth = async (url, options = {}) => {
+    const token = getValidToken();
+    if (!token) {
+      setIsAuthed(false);
+      return new Response(null, { status: 401 });
+    }
+
     const headers = {
       ...(options.headers || {}),
       Authorization: "Bearer " + token
     };
-    return fetch(url, { ...options, headers });
+    const res = await fetch(url, { ...options, headers });
+    if (res.status === 401) {
+      localStorage.removeItem("token");
+      setIsAuthed(false);
+    }
+    return res;
   };
 
   // 機台啟用/停用
@@ -94,8 +110,11 @@ const FactoryDashboard = () => {
   const fetchKpiAndAvarage = async () => {
     try {
       const res1 = await fetchWithAuth("/api/productionlog/kpi-total-output");
+      if (!res1.ok) return;
       setKpiTotalOutput(await res1.json());
+
       const res2 = await fetchWithAuth("/api/productionlog/kpi-average-yieldrate");
+      if (!res2.ok) return;
       const avg = await res2.json();
       setKpiAverageYieldRate(avg.toFixed(2));
     } catch (e) {
@@ -108,6 +127,7 @@ const FactoryDashboard = () => {
   const fetchMachines = async () => {
     try {
       const res = await fetchWithAuth("/api/machine");
+      if (!res.ok) return;
       setMachines(await res.json());
     } catch (e) {}
   };
@@ -116,6 +136,7 @@ const FactoryDashboard = () => {
   const fetchAlarms = async () => {
     try {
       const res = await fetchWithAuth("/api/machine/alarms/10");
+      if (!res.ok) return;
       setAlarms(await res.json());
     } catch (e) {}
   };
@@ -126,8 +147,8 @@ const FactoryDashboard = () => {
       const pageNum = page || 1;
       const res = await fetchWithAuth(`/api/productionlog?page=${pageNum}&pageSize=10`);
       if (!res.ok) {
-        const errorData = await res.json();
-        console.error("後端驗證失敗:", errorData);
+        // 401 等錯誤回應可能沒有 body，不能直接 res.json()
+        console.error("取得生產資料失敗:", res.status, await res.text());
         return;
       }
       const data = await res.json();
@@ -244,35 +265,45 @@ const FactoryDashboard = () => {
   // ----------------------------------------
   // 自動刷新區
   // ----------------------------------------
+  // 未授權時不發任何請求，也不啟動輪詢（否則會每 10 秒重打一輪 401）
   useEffect(() => {
+    if (!isAuthed) return;
     fetchLogs(currentPage);
     const timer = setInterval(() => {
       fetchLogs(currentPage);
     }, 10000);
     return () => clearInterval(timer);
-  }, [currentPage]);
+  }, [currentPage, isAuthed]);
 
   useEffect(() => {
+    if (!isAuthed) return;
     fetchMachines();
     const timer = setInterval(fetchMachines, 30000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isAuthed]);
 
   useEffect(() => {
+    if (!isAuthed) return;
     fetchAlarms();
     const timer = setInterval(fetchAlarms, 10000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isAuthed]);
 
   useEffect(() => {
+    if (!isAuthed) return;
     fetchKpiAndAvarage();
     const timer = setInterval(fetchKpiAndAvarage, 10000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isAuthed]);
 
   // ----------------------------------------
   // HTML
   // ----------------------------------------
+  // 沒有有效 token（未登入或 token 已過期）就導回登入頁
+  if (!isAuthed) {
+    return <Navigate to="/user" replace />;
+  }
+
   return (
     <div className="factory-dashboard-container">
       {/* 分頁連結區塊 */}
@@ -350,9 +381,8 @@ const FactoryDashboard = () => {
 
       <h2 className="fd-title">產出資料</h2>
       <div className="fd-table-container-with-pager">
-        <div className="fd-table-wrapper" style={{ marginBottom: 0 }}>
-          <Table columns={logsCols} data={renderLogs} />
-        </div>
+        {/* Table 內部已有 .fd-table-wrapper 負責橫向捲動，不再外包一層 */}
+        <Table columns={logsCols} data={renderLogs} />
 
         {/* --- 整合型分頁條 --- */}
         <div className="fd-pagination-footer">

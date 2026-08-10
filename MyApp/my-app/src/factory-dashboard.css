@@ -1,16 +1,74 @@
 /* 分頁連結區塊樣式 */
 .fd-page-link-row {
-  padding: 20px;
+  position: relative;
+  padding: 20px 0;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
+  margin-bottom: 10px;
 }
 
 .fd-page-link-btn {
-  flex: 1 1 0;
   min-width: 0;
-  margin: 0 5px;
-  margin-bottom: 30px;
+}
+
+/* 頁面列表：展開鈕與下拉選單 */
+.fd-nav-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  max-width: 280px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #465374;
+  padding: 16px 20px;
+  box-shadow: 0 6px 10px #0002;
+}
+
+.fd-nav-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fd-nav-toggle-caret {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.fd-nav-menu {
+  position: absolute;
+  /* 貼齊展開鈕下緣，不再用寫死的 top 值 */
+  top: calc(100% - 12px);
+  left: 0;
+  right: 0;
+  max-width: 280px;
+  background: var(--white);
+  border: 1px solid #dcdfe6;
+  border-radius: 8px;
+  box-shadow: 0 15px 15px #0002;
+  z-index: 10;
+  padding: 8px;
+}
+
+.fd-nav-menu-item {
+  display: block;
+  margin: 0 0 8px 0;
+}
+
+.fd-nav-menu-item:last-child {
+  margin-bottom: 0;
+}
+
+.fd-nav-menu-logout {
+  color: var(--error-red);
+}
+
+/* 原本用 JS 動態插入的規則，改回 CSS 管理 */
+.fd-page-link-btn:hover {
+  color: #fff !important;
 }
 
 .fd-page-link-btn {
@@ -38,19 +96,18 @@
   border-color: var(--primary-blue);
 }
 /* KPI 及良率區塊卡片樣式 */
+/* 用 auto-fit grid：寬螢幕並排、窄螢幕自動疊成一欄 */
 .fd-kpi-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 24px;
   margin-bottom: 16px;
-  justify-content: center;
-  align-items: center;
 }
 .fd-kpi-card {
   background: #f5f7fa;
   border-radius: 8px;
-  padding: 16px 32px;
+  padding: 16px 24px;
   box-shadow: 0 2px 8px #0001;
-  min-width: 180px;
   text-align: center;
 }
 .fd-kpi-label {
@@ -72,9 +129,23 @@
 .fd-checkbox-label {
   margin-right: 16px;
 }
+.fd-input-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0 16px 0;
+}
 .fd-input-group input {
   padding: 8px 12px;
-  margin: 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  /* 窄螢幕時佔滿一行，不再溢出容器 */
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.fd-input-group input[type="checkbox"] {
+  flex: 0 0 auto;
 }
 /* 1. 全域變數定義 - 方便以後一鍵換色 */
 :root {
@@ -86,6 +157,13 @@
   --border-color: #e3e3e3;
   --bg-light: #f9fafb;
   --white: #ffffff;
+}
+
+/* 全域盒模型：padding 不再把元素撐出容器 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 /* 2. 容器主框架 */
@@ -100,24 +178,23 @@
 
 .user-form-wrapper {
   max-width: 400px;
-  height: 600px;
+  /* 固定 height 在手機上會裁掉內容，改用 min-height */
+  min-height: 480px;
   margin: 0 auto;
   width: 100%;
 }
 
 .fd-header-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  gap: 8px;
   margin-bottom: 10px;
 }
 
 .fd-header-row .fd-title {
-  flex: 1;
-}
-
-.fd-header-row .fd-add-btn,
-.fd-header-row .fd-export-btn {
-  margin-left: 10px;
+  /* 空間不足時整行換到上方，按鈕自己排一列 */
+  flex: 1 1 240px;
 }
 
 .fd-header-row .fd-btn-group {
@@ -134,6 +211,14 @@
 }
 
 /* 3. 通用表格樣式 (Table) */
+/* 表格有 min-width，必須讓外框自己橫向捲動，否則會撐爆整個頁面 */
+.fd-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 30px;
+}
+
 .fd-table {
   width: 100%;
   border-collapse: collapse;
@@ -270,4 +355,114 @@
 }
 .fd-add-form {
   animation: fdFadeIn 0.3s ease-out;
+}
+
+/* 8. RWD 斷點 */
+/* 平板（≤ 900px）：收掉外距與內距，讓內容用滿螢幕寬度 */
+@media (max-width: 900px) {
+  .factory-dashboard-container {
+    margin: 16px;
+    padding: 20px;
+    border-radius: 8px;
+  }
+
+  .fd-kpi-row {
+    gap: 16px;
+  }
+
+  .fd-kpi-value {
+    font-size: 24px;
+  }
+
+  .fd-title {
+    margin: 24px 0 12px 0;
+    font-size: 20px;
+  }
+
+  .fd-pagination-footer {
+    padding: 10px 12px;
+  }
+}
+
+/* 手機（≤ 600px） */
+@media (max-width: 600px) {
+  .factory-dashboard-container {
+    margin: 0;
+    padding: 16px 12px;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .fd-page-link-row {
+    padding: 8px 0 16px 0;
+  }
+
+  /* 展開鈕與下拉選單改為滿寬，字級縮小 */
+  .fd-nav-toggle,
+  .fd-nav-menu {
+    max-width: none;
+  }
+
+  .fd-nav-toggle {
+    font-size: 18px;
+    padding: 12px 16px;
+  }
+
+  .fd-nav-toggle-caret {
+    font-size: 16px;
+  }
+
+  /* KPI 疊成一欄 */
+  .fd-kpi-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .fd-kpi-card {
+    padding: 12px 16px;
+  }
+
+  .fd-kpi-label {
+    font-size: 14px;
+  }
+
+  /* 標題與操作鈕分行，按鈕各佔一半寬度方便點擊 */
+  .fd-header-row .fd-title {
+    flex: 1 1 100%;
+  }
+
+  .fd-header-row .fd-add-btn,
+  .fd-header-row .fd-export-btn {
+    flex: 1 1 0;
+    padding: 12px 10px;
+  }
+
+  .fd-input-group input {
+    flex: 1 1 100%;
+  }
+
+  .fd-submit-btn {
+    width: 100%;
+  }
+
+  /* 表格靠捲動呈現，縮小字級與內距減少捲動距離 */
+  .fd-table {
+    font-size: 14px;
+    min-width: 520px;
+  }
+
+  .fd-table th,
+  .fd-table td {
+    padding: 8px 8px;
+  }
+
+  .fd-table-wrapper {
+    margin-bottom: 20px;
+  }
+
+  /* 觸控目標放大 */
+  .fd-page-btn-sm {
+    padding: 8px 16px;
+    font-size: 16px;
+  }
 }
